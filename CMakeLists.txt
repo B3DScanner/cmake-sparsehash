@@ -25,12 +25,14 @@ set(SPARSEHASH_INTERNAL_HEADERS
     src/sparsehash/internal/libc_allocator_with_realloc.h
 )
 
+set(SPARSEHASH_INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}/include")
+
 install(FILES ${SPARSEHASH_HEADERS}
-    DESTINATION include/sparsehash
+    DESTINATION ${SPARSEHASH_INCLUDE_DIR}/sparsehash
 )
 
 install(FILES ${SPARSEHASH_INTERNAL_HEADERS}
-    DESTINATION include/sparsehash/internal
+    DESTINATION ${SPARSEHASH_INCLUDE_DIR}/sparsehash/internal
 )
 
 if(INSTALL_DOC)
@@ -41,7 +43,7 @@ if(INSTALL_DOC)
         doc/sparsetable.html doc/implementation.html
         doc/performance.html doc/index.html doc/designstyle.css
     )
-    install(FILES ${DOC_FILES} DESTINATION share/doc/${PROJECT_NAME})
+    install(FILES ${DOC_FILES} DESTINATION ${CMAKE_INSTALL_PREFIX}/share/doc/${PROJECT_NAME})
 endif()
 
 if(BUILD_TESTS)
@@ -67,6 +69,25 @@ if(BUILD_TESTS)
     add_test(NAME simple_test COMMAND simple_test)
 endif()
 
+add_library(${PROJECT_NAME} INTERFACE)
+target_include_directories(${PROJECT_NAME} INTERFACE ${SPARSEHASH_INCLUDE_DIR})
+
+install(TARGETS ${PROJECT_NAME}
+    EXPORT ${PROJECT_NAME}Targets
+    INCLUDES DESTINATION include
+)
+
+install(EXPORT ${PROJECT_NAME}Targets
+    FILE ${PROJECT_NAME}Targets.cmake
+    NAMESPACE ${PROJECT_NAME}::
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake/${PROJECT_NAME}
+)
+
+install(DIRECTORY ${SPARSEHASH_INCLUDE_DIR}/
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/include
+    FILES_MATCHING PATTERN "*.h"
+)
+
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
     "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
@@ -75,7 +96,7 @@ write_basic_package_version_file(
 )
 
 configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/SparseHashConfig.cmake.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}Config.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
     @ONLY
 )
