@@ -49,9 +49,17 @@
 
 _START_GOOGLE_NAMESPACE_
 
-template <bool> struct SparsehashCompileAssert { };
+template <bool>
+struct SparsehashCompileAssert { };
+
+// Makro dla kompilatora GCC/Clang i MSVC
+#ifdef _MSC_VER
 #define SPARSEHASH_COMPILE_ASSERT(expr, msg) \
-  __attribute__((unused)) typedef SparsehashCompileAssert<(bool(expr))> msg[bool(expr) ? 1 : -1]
+        typedef SparsehashCompileAssert<(expr)> msg[(expr) ? 1 : -1]
+#else
+#define SPARSEHASH_COMPILE_ASSERT(expr, msg) \
+        __attribute__((unused)) typedef SparsehashCompileAssert<(bool(expr))> msg[bool(expr) ? 1 : -1]
+#endif
 
 namespace sparsehash_internal {
 
