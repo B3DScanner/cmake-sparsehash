@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(SparseHash VERSION 1.0 LANGUAGES CXX)
+project(SparseHash VERSION 1.2 LANGUAGES C CXX)
 
 option(INSTALL_DOC "Install documentation files" OFF)
 option(BUILD_TESTS "Build and run tests" OFF)
@@ -7,6 +7,35 @@ option(BUILD_TESTS "Build and run tests" OFF)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -W -Wwrite-strings -Woverloaded-virtual -Wshadow")
+
+include(CheckIncludeFiles)
+check_include_files("inttypes.h" HAVE_INTTYPES_H)
+check_include_files("stdint.h" HAVE_STDINT_H)
+check_include_files("sys/types.h" HAVE_SYS_TYPES_H)
+
+if(NOT HAVE_STDINT_H)
+	message( FATAL_ERROR "inttypes.h Not Found" )
+endif()
+
+include(CheckFunctionExists)
+check_function_exists(memcpy HAVE_MEMCPY)
+
+include(CheckTypeSize)
+check_type_size("uint16_t" HAVE_UINT16_T)
+check_type_size("long long" HAVE_LONG_LONG)
+
+if(MSVC)
+    set(HASH_FUN_H "<hash_map>")
+    set(HASH_NAMESPACE "stdext")
+else()
+    set(HASH_FUN_H "<unordered_map>")
+    set(HASH_NAMESPACE "std")
+endif()
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/sparseconfig.h.in
+               ${CMAKE_CURRENT_BINARY_DIR}/sparseconfig.h)
+			   
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 set(SPARSEHASH_HEADERS
     src/sparsehash/dense_hash_map
@@ -31,7 +60,7 @@ install(FILES ${SPARSEHASH_HEADERS}
     DESTINATION ${SPARSEHASH_INCLUDE_DIR}/sparsehash
 )
 
-install(FILES ${SPARSEHASH_INTERNAL_HEADERS}
+install(FILES ${SPARSEHASH_INTERNAL_HEADERS} ${CMAKE_CURRENT_BINARY_DIR}/sparseconfig.h
     DESTINATION ${SPARSEHASH_INCLUDE_DIR}/sparsehash/internal
 )
 
