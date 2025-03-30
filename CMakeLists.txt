@@ -1,5 +1,12 @@
 cmake_minimum_required(VERSION 3.10)
-project(SparseHash VERSION 1.2 LANGUAGES C CXX)
+
+set(VERSION_PREFIX "sh" CACHE STRING "Prefix for generated files and definitions")
+
+# Install semantic version from github plugin
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/get-latest-cpm.cmake)
+CPMAddPackage("gh:B3DScanner/Version.cmake#master")
+
+project(SparseHash VERSION ${VERSION_SEMANTIC} LANGUAGES C CXX)
 
 option(INSTALL_DOC "Install documentation files" OFF)
 option(BUILD_TESTS "Build and run tests" OFF)
@@ -12,7 +19,8 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")          
 
 # Tworzymy bibliotekę INTERFACE
-add_library(${PROJECT_NAME} INTERFACE)
+add_library(${PROJECT_NAME} STATIC ${CMAKE_CURRENT_SOURCE_DIR}/srcs/main.cpp)
+target_link_libraries(${PROJECT_NAME} version::version)
 
 # Ustawiamy ścieżki do nagłówków
 target_include_directories(${PROJECT_NAME} INTERFACE
@@ -21,7 +29,7 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 )
 
 # Instalujemy bibliotekę i pliki nagłówkowe
-install(TARGETS ${PROJECT_NAME}
+install(TARGETS ${PROJECT_NAME} cmakeVersion
     EXPORT ${PROJECT_NAME}Targets
     PUBLIC_HEADER DESTINATION include
 )
